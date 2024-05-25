@@ -1,6 +1,6 @@
 local toml = require("toml")
-local f = fs.open("/etc/repo.toml","r")
-local repos = toml.decode(f.readAll())
+local f = fs.open("/etc/repo.ltn","r")
+local repos = textutils.unserialize(f.readAll())
 f.close()
 
 local args = {...}
@@ -8,6 +8,7 @@ local cmd = args[1]
 local function sync()
     io.stdout:write("syncing package lists\n")
     local pkgsD = {}
+    local pkgsL = {}
     local reposUsed = {}
     for key, value in pairs(repos) do
         if reposUsed[key] then
@@ -16,6 +17,7 @@ local function sync()
             io.stdout:write("fetching repo "..key.."\n")
             local r = http.get(value.url.."packs.toml")
             local pk = toml.decode(r.readAll())
+            --print(textutils.serialise(pk))
             for k, v in pairs(pk) do
                 if v.location == "local" then
                     v.url = value.url..k..".toml"
@@ -23,10 +25,18 @@ local function sync()
                 io.stdout:write("fetching "..key.."."..k.."\n")
                 local R = http.get(v.url)
                 local pak = toml.decode(R.readAll())
-                if pkgsD[k] then
-                    pkgsD[key.."."..k] = pak.package
+                if pkgsL[k] then
+                    --if pkgsL[k.."-"..key] then
+                    --else
+                    --    pkgsD[k.."-"..key] = pak.package
+                    --    pkgsL[k.."-"..key] = true
+                    --end
+                    
                 else
                     pkgsD[k] = pak.package
+                    --pkgsD[k.."-"..key] = pak.package
+                    pkgsL[k] = true
+                    --pkgsL[k.."-"..key] = true
                 end
             end
         end
@@ -52,9 +62,9 @@ local function isIns(k)
     return pkgs[k]
 end
 local function add()
-    local f = fs.open("/etc/repo.toml","w")
+    local f = fs.open("/etc/repo.ltn","w")
     repos[args[2]] = {url=args[3]}
-    f.write(toml.encode(repos))
+    f.write(textutils.serialise(repos))
     f.close()
 end
 local function pkgPath(pki,pk)

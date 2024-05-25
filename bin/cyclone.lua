@@ -5,6 +5,16 @@ f.close()
 
 local args = {...}
 local cmd = args[1]
+local function getPkgData(pki)
+    local f = fs.open("/var/cyclone/pkgs.ltn","r")
+    local pkgs = textutils.unserialize(f.readAll())
+    f.close()
+    local pk = pkgs[pki]
+    if pk.SIMLNK then
+        pk = pkgs[pk.SIMLNK]
+    end
+    return pk
+end
 local function sync()
     io.stdout:write("syncing package lists\n")
     local pkgsD = {}
@@ -25,18 +35,16 @@ local function sync()
                 io.stdout:write("fetching "..key.."."..k.."\n")
                 local R = http.get(v.url)
                 local pak = toml.decode(R.readAll())
+                pak.package.nmx = k
                 if pkgsL[k] then
-                    --if pkgsL[k.."-"..key] then
-                    --else
-                    --    pkgsD[k.."-"..key] = pak.package
-                    --    pkgsL[k.."-"..key] = true
-                    --end
+                    pkgsD[key.."."..k] = pak.package
+                    pkgsL[key.."."..k] = true
                     
                 else
-                    pkgsD[k] = pak.package
-                    --pkgsD[k.."-"..key] = pak.package
+                    pkgsD[k] = {SIMLNK=key.."."..k}
+                    pkgsD[key.."."..k] = pak.package
                     pkgsL[k] = true
-                    --pkgsL[k.."-"..key] = true
+                    pkgsL[key.."."..k] = true
                 end
             end
         end
@@ -47,17 +55,17 @@ local function sync()
     f.close()
 end
 local function updateIns(k,v)
-    local f = fs.open("/var/cyclone/installed.toml","r")
-    local pkgs = toml.decode(f.readAll())
+    local f = fs.open("/var/cyclone/installed.ltn","r")
+    local pkgs = textutils.unserialize(f.readAll())
     f.close()
     pkgs[k] = v
-    f = fs.open("/var/cyclone/installed.toml","w")
-    f.write(toml.encode(pkgs))
+    f = fs.open("/var/cyclone/installed.ltn","w")
+    f.write(textutils.serialise(pkgs))
     f.close()
 end
 local function isIns(k)
-    local f = fs.open("/var/cyclone/installed.toml","r")
-    local pkgs = toml.decode(f.readAll())
+    local f = fs.open("/var/cyclone/installed.ltn","r")
+    local pkgs = textutils.unserialize(f.readAll())
     f.close()
     return pkgs[k]
 end
@@ -67,7 +75,8 @@ local function add()
     f.write(textutils.serialise(repos))
     f.close()
 end
-local function pkgPath(pki,pk)
+local function pkgPath(pk)
+    local pki = pk.nmx
     if pk.fname then
         pki = pk.fname
     end
@@ -78,10 +87,7 @@ local function pkgPath(pki,pk)
     end
 end
 local function install(pki)
-    local f = fs.open("/var/cyclone/pkgs.ltn","r")
-    local pkgs = textutils.unserialize(f.readAll())
-    f.close()
-    local pk = pkgs[pki]
+    local pk = getPkgData(pki)
     if isIns(pki) then
         io.stdout:write(pki.." ["..isIns(pki).."]".." is installed\n")
     elseif pk then
@@ -92,7 +98,7 @@ local function install(pki)
             end
         end
         io.stdout:write("installing "..pki.."\n")
-        local fa = fs.open(pkgPath(pki,pk),"w")
+        local fa = fs.open(pkgPath(pk),"w")
         local R = http.get(pk.addr)
         fa.write(R.readAll())
         fa.close()
@@ -105,7 +111,7 @@ local function update(pki)
     local f = fs.open("/var/cyclone/pkgs.ltn","r")
     local pkgs = textutils.unserialize(f.readAll())
     f.close()
-    local pk = pkgs[pki]
+    local pk = getPkgData(pki)
     if pk then
     else
         return
@@ -120,7 +126,7 @@ local function update(pki)
             end
         end
         io.stdout:write("updating "..pki.."\n")
-        local fa = fs.open(pkgPath(pki,pk),"w")
+        local fa = fs.open(pkgPath(pk),"w")
         local R = http.get(pk.addr)
         fa.write(R.readAll())
         fa.close()
@@ -128,8 +134,8 @@ local function update(pki)
     end
 end
 local function updateAll()
-    local f = fs.open("/var/cyclone/installed.toml","r")
-    local pkgsI = toml.decode(f.readAll())
+    local f = fs.open("/var/cyclone/installed.ltn","r")
+    local pkgsI = textutils.unserialize(f.readAll())
     f.close()
     for key, value in pairs(pkgsI) do
         update(key)

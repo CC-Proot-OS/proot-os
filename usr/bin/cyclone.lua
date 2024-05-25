@@ -6,6 +6,7 @@ f.close()
 local args = {...}
 local cmd = args[1]
 local function sync()
+    io.stdout:write("syncing package lists\n")
     local pkgsD = {}
     local reposUsed = {}
     for key, value in pairs(repos) do
@@ -114,7 +115,11 @@ local function updateAll()
         update(key)
     end
 end
-
+if cmd == "-s" then
+    table.remove(args,1)
+    cmd = args[1]
+    sync()
+end
 if cmd == "-S" then
     sync()
 elseif cmd == "-A" then
@@ -126,5 +131,5 @@ elseif cmd == "-U" then
 elseif cmd == "-Ua" then
     updateAll()
 else
-    printWarning("Invalid Command")
+    io.stderr:write("Invalid Command\n")
 end

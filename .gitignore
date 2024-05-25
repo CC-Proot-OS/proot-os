@@ -1,0 +1,5 @@
+.cash_history
+e
+var/cyclone/pkgs.toml
+var/cyclone/installed.toml
+var/cyclone/pkgs.ltn

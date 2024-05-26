@@ -55,7 +55,7 @@ local function trim(s) return string.match(s, '^()%s*$') and '' or string.match(
 
 HOME = "/"
 SHELL = topshell and topshell.getRunningProgram() or "/bin/cash"
-PATH =  ".:/bin:/sys/bin:/usr/bin:/usr/lib:/lib:/sys/lib"
+PATH =  ".:/bin:/sys/bin:/usr/bin:/usr/lib:/lib:/sys/lib:/lib"
 USER = kernel.getUser() or "root"
 EDITOR = "edit"
 OLDPWD = topshell and topshell.dir() or "/"

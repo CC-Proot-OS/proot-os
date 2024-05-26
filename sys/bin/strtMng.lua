@@ -15,25 +15,28 @@ log:debug("Starting Services")
 log:warn("Services not implemented")
 
 local function userspace()
+    local login = loadfile("/sys/bin/login.lua")
     while true do
+        xpcall(function(task)
+            login(task,sync,user)
+        end,printWarning)
         local u = user.get()
         log:debug("logged in",u)
         kernel.login(u)
         term.switch(2)
         term.clear()
         term.setCursorPos(1,1)
-        loadfile("/bin/cash.lua","t",_ENV)()
+        xpcall(function (...)
+            loadfile("/bin/cash.lua","t",_ENV)()
+        end,printError)
+        
     end
 end
 
 
 log:debug("Starting Login")
-local login = loadfile("/sys/bin/login.lua")
-local loginTsk = loop:addTask(function(task)
-    login(task,sync,user)
-end)
-loginTsk:setEventBlacklist {}
-loginTsk:setPriority(8)
+
+
 
 local UsrSpace = loop:addTask(function(task)
     userspace(task,sync,user)

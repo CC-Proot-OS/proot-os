@@ -343,7 +343,7 @@ function Taskmaster:task(fn) self:addTask(fn) return self end
 function Taskmaster:addEventListener(name, fn)
     expect(1, name, "string")
     expect(2, fn, "function")
-    local task = setmetatable({coro = coroutine.create(function() while true do fn(os.pullEvent(name)) end end), master = self, priority = 0}, Task_mt)
+    local task = setmetatable({coro = coroutine.create(function() while true do fn(os.pullEventFilter(name)) end end), master = self, priority = 0}, Task_mt)
     self.new[#self.new+1] = task
     self.shouldSort = true
     return task
@@ -507,7 +507,7 @@ local function fetch(loop, url, ...)
     if not ok then return Promise:_reject(loop, err) end
     return loop.Promise.new(function(resolve, reject)
         while true do
-            local event, p1, p2, p3 = os.pullEvent()
+            local event, p1, p2, p3 = os.pullEventFilter()
             if event == "http_success" and p1 == url then
                 p2.text = function()
                     return loop.Promise.new(function(_resolve, _reject)

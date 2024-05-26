@@ -159,6 +159,14 @@ function os.pullEvent(sFilter)
     return table.unpack(eventData, 1, eventData.n)
 end
 
+function os.pullEventFilter(sFilter)
+    local eventData = table.pack(os.pullEventRaw(sFilter))
+    if eventData[1] == "terminate" then
+        return
+    end
+    return table.unpack(eventData, 1, eventData.n)
+end
+
 -- Install globals
 function sleep(nTime)
     expect(1, nTime, "number", "nil")
@@ -947,7 +955,7 @@ if not bootSettings.success then
     panic()
 end
 log:info("Boot Setup")
-log:info("Boot Setup")
+
 local function makeTTY()
     local w,h = term.getSize()
     local tty = window.create(term.current(),1,1,w,h,false)
@@ -995,19 +1003,40 @@ local nums = {
     [keys.three] = 3
 }
 loop:eventListener("key", function(ev, key)
-    KEYSPRS[key]=true
+    if key then
+        KEYSPRS[key]=true
     if KEYSPRS[keys.leftCtrl] then
         if nums[key] then
             term.switch(nums[key])
         end
     end
+    end
+    
 end)
-loop:eventListener("key_up", function(ev, key) KEYSPRS[key]=false end)
+loop:eventListener("key_up", function(ev, key)
+    if key then
+        KEYSPRS[key]=false
+    end
+    
+end)
 
 loop:eventListener("char", function(ev, char)
     
 end)
 
+local function BSOD(tx)
+    xpcall(function()
+        term.switch(1)
+        term.setCursorPos(1,1)
+        term.setBackgroundColor(colors.black)
+        term.clear()
+        log:critical(debug.traceback(tx))
+        log:warn("YouGottaBeKiddingMe")
+        while true do
+            coroutine.yield()
+        end
+    end,panic)
+end
 
 xpcall(function()
     
@@ -1015,12 +1044,6 @@ xpcall(function()
 
     local function fgFunc(task)
         log:info("Starting Kernel")
-        while true do
-            local event, p1 = os.pullEvent()
-            if event == "char" and p1 == "q" then
-                task:remove()
-            end
-        end
     end
 
     local task = loop:addTask(fgFunc)
@@ -1038,6 +1061,6 @@ xpcall(function()
 
     
     loop:run()
-end,panic)
+end,BSOD)
 
-panic()
+BSOD()

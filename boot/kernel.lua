@@ -1,6 +1,12 @@
 local expect
 _loggers = {}
 kernel = {}
+if os.version then
+    print(_HOST)
+    printError("ProotOS Running in unknown environment")
+    print([[To launch ProotOS use unbios or pxboot]])
+    return
+end
 do
     local h = fs.open("rom/modules/main/cc/expect.lua", "r")
     local f, err = (_VERSION == "Lua 5.1" and loadstring or load)(h.readAll(), "@/rom/modules/main/cc/expect.lua")

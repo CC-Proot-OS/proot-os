@@ -4,3 +4,4 @@ var/cyclone/pkgs.toml
 var/cyclone/installed.toml
 var/cyclone/pkgs.ltn
 var/cyclone/installed.ltn
+pkg

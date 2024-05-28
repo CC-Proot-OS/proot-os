@@ -1,8 +1,11 @@
 {
+  cycl = {
+    url = "https://raw.githubusercontent.com/CC-Proot-OS/CycloneRepo/main/",
+  },
   proot = {
     url = "https://raw.githubusercontent.com/CC-Proot-OS/proot-cycl/main/",
   },
-  cycl = {
-    url = "https://raw.githubusercontent.com/CC-Proot-OS/CycloneRepo/main/",
+  prootsys = {
+    url = "https://raw.githubusercontent.com/CC-Proot-OS/intrnl-cycl/main/",
   },
 }

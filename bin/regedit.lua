@@ -1,4 +1,4 @@
-debug.debug()
+
 local fat = dofile("/sys/lib/fat.lua")
 local reg = fat.proxy("/etc/reg.fs")
 term.switch(2)

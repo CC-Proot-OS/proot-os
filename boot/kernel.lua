@@ -329,7 +329,7 @@ local function writeANSI(nativewrite)
                 else seq = nil end
             elseif seq ~= nil and string.sub(seq, 1, 1) == "[" then
                 if tonumber(c) ~= nil or c == ';' then seq = seq .. c else
-                    debug.debug()
+                    
                     if c == "A" then term.setCursorPos(term.getCursorPos(), select(2, term.getCursorPos()) - getnum())
                     elseif c == "B" then term.setCursorPos(term.getCursorPos(), select(2, term.getCursorPos()) + getnum())
                     elseif c == "C" then term.setCursorPos(term.getCursorPos() + getnum(), select(2, term.getCursorPos()))
@@ -358,7 +358,7 @@ local function writeANSI(nativewrite)
                         elseif n >= 40 and n <= 47 then term.setBackgroundColor(2^(15 - (n - 40) - (bold and 8 or 0)))
                         elseif n == 49 then term.setBackgroundColor(colors.black) 
                         elseif n >= 90 and n <= 97 then
-                            debug.debug()
+                            
                             term.setTextColor(2^(15 - (n - 90) - 8))
                         elseif n >= 100 and n <= 107 then term.setBackgroundColor(2^(15 - (n - 100) - 8))
                         end
@@ -453,7 +453,6 @@ function printError(...)
         term.setTextColour(oldColour)
     end
 end
-
 
 function printWarning(...)
     local oldColour
